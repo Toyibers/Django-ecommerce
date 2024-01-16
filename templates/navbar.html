@@ -1,0 +1,19 @@
+<nav>
+    <ul>
+        <li class="megamenu-holder"><a href="{% url "beranda" %}">Beranda</a></li>
+        <li class="dropdown-holder"><a href="{% url "profil" %}">Profil</a></li>
+        <li class="dropdown-holder"><a href="#">Produk</a>
+            <ul class="hb-dropdown">
+                {% for kt in kategori %}
+                    <li><a href="{% url 'kategori' kt.slug %}">{{kt.nama}}</a></li>
+                {% empty %}
+                    <div class="alert alert-danger">Kategori Kosong</div>
+                {% endfor %}
+            </ul>
+        </li>
+        <li class="megamenu-static-holder">
+            <a href="{% url 'cart_detail' %}">Pemesanan</a>
+        </li>
+        <li><a href="{% url "kontak" %}"> Hubungi Kami</a></li>
+    </ul>
+</nav>
