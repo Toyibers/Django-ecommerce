@@ -16,8 +16,6 @@ from .telegram_utill import send_telegram_message
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.db.models import Q
 
-
-
 def beranda(request):
     kategori = Kategori.objects.filter(aktif=True).order_by('-id')
     slider = Slide.objects.filter(aktif=True).order_by('-id')
@@ -159,6 +157,22 @@ class CheckoutView(View):
         if whatsapp == "":
             messages.error(request, 'Whatsapp Masih kosong')
             context['has_error'] = True
+
+        recaptcha_response = request.POST.get('g-recaptcha-response')
+        url = 'https://www.google.com/recaptcha/api/siteverify'
+        values = {
+            'secret': settings.GOOGLE_RECAPTCHA_SECRET_KEY,
+            'response': recaptcha_response
+            }
+        data = urllib.parse.urlencode(values).encode()
+        req = urllib.request.Request(url, data=data)
+        response = urllib.request.urlopen(req)
+        result = json.loads(response.read().decode())
+
+        # print(result['success'])
+        if result['success']== False:
+            messages.error(request, 'CaptCha Masih Belum dicentang')
+            context['has_error'] = True
         if context['has_error']:
             return render(request, 'checkout.html', context, status=400)
         
@@ -191,7 +205,7 @@ class CheckoutView(View):
         chats = ChatID.objects.filter(aktif=True)
         for chat in chats:
             grantotal_formatted = f"Rp. {intcomma(grantotal)}"
-            message = f"Assalamualaikum Wr Wb,\n\nNo Transaksi: <b>{no_transaksi}</b>\nNama: <b>{nama_depan} {nama_belakang}</b>\nNo whatsapp: <b>{whatsapp}</b>\nAlamat: <b>{alamat}</b>\nTotal Transaksi: <b>{grantotal_formatted}</b>\n\nTerimakasih, Salam Clarak Store dan Wssalamualaikum Wr Wb."
+            message = f"Assalamualaikum Wr Wb,\n\nNo Transaksi: <b>{no_transaksi}</b>\nNama: <b>{nama_depan} {nama_belakang}</b>\nNo whatsapp: <b>{whatsapp}</b>\nAlamat: <b>{alamat}</b>\nTotal Transaksi: <b>{grantotal_formatted}</b>\n\nTerimakasih, Salam Moch Toyib dan Wssalamualaikum Wr Wb."
             send_telegram_message(chat.chatid, message)
             
         keranjang.clear()
@@ -283,10 +297,3 @@ def modalberita(request):
 def statisweb(request):
     statis = Statis.objects.get(id=1)
     return {'statis':statis}
-
-
-
-
-
-
-
